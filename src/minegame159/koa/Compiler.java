@@ -666,28 +666,56 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
 
     private void throwWrongTypeException(Value.Type expected) {
         m.fieldInsn(Opcodes.GETFIELD, VALUE, "type", VALUETYPE_D);
+        valueTypeToString();
         m.varInsn(Opcodes.ASTORE, 2);
-        m.typeInsn(Opcodes.NEW, WRONGTYPEEXCEPTION);
+        m.typeInsn(Opcodes.NEW, ERROR);
         m.insn(Opcodes.DUP);
         m.ldcInsn(line);
+
+        m.ldcInsn("Wrong Type - Expected: ");
         switch (expected) {
             case Number:   m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Number", VALUETYPE_D); break;
             case Table:    m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Table", VALUETYPE_D); break;
             case Function: m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Function", VALUETYPE_D); break;
         }
+        valueTypeToString();
+        stringConcat();
+        m.ldcInsn(", Got: ");
+        stringConcat();
         m.varInsn(Opcodes.ALOAD, 2);
-        m.methodInsnSpecial(WRONGTYPEEXCEPTION, "<init>", "I", VALUETYPE_D, VALUETYPE_D, "V");
+        stringConcat();
+
+        m.methodInsnSpecial(ERROR, "<init>", "I", STRING_D, "V");
         m.insn(Opcodes.ATHROW);
     }
     private void throwWrongNumberOfArgumentsException(int got) {
-        m.varInsn(Opcodes.ISTORE, 2);
-        m.typeInsn(Opcodes.NEW, WRONGNUMBEROFARGUENTSEXCEPTION); // exception
-        m.insn(Opcodes.DUP); // exception, exception
-        m.ldcInsn(line); // exception, exception, line
-        m.varInsn(Opcodes.ILOAD, 2);
+        intToString();
+        m.varInsn(Opcodes.ASTORE, 2);
+        m.typeInsn(Opcodes.NEW, ERROR);
+        m.insn(Opcodes.DUP);
+        m.ldcInsn(line);
+
+        m.ldcInsn("Wrong number of arguments - Expected: ");
+        m.varInsn(Opcodes.ALOAD, 2);
+        stringConcat();
+        m.ldcInsn(", Got: ");
+        stringConcat();
         m.ldcInsn(got);
-        m.methodInsnSpecial(WRONGNUMBEROFARGUENTSEXCEPTION, "<init>", "I", "I", "I", "V"); // exception
-        m.insn(Opcodes.ATHROW); // -/-
+        intToString();
+        stringConcat();
+
+        m.methodInsnSpecial(ERROR, "<init>", "I", STRING_D, "V");
+        m.insn(Opcodes.ATHROW);
+    }
+
+    private void intToString() {
+        m.methodStaticInsn(INTEGER, "toString", "I", STRING_D);
+    }
+    private void stringConcat() {
+        m.methodInsn(STRING, "concat", STRING_D, STRING_D);
+    }
+    private void valueTypeToString() {
+        m.methodInsn(VALUETYPE, "toString", STRING_D);
     }
 
     private void beginScope() {

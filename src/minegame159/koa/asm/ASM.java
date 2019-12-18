@@ -13,6 +13,9 @@ public class ASM {
     public static final String STRING = "java/lang/String";
     public static final String STRING_D = "Ljava/lang/String;";
 
+    public static final String INTEGER = "java/lang/Integer";
+    public static final String INTEGER_D = "Ljava/lang/Integer;";
+
     public static final String PRINTSTREAM = "java/io/PrintStream";
     public static final String PRINTSTREAM_D = "Ljava/io/PrintStream;";
 
@@ -40,11 +43,8 @@ public class ASM {
     public static final String VALUE_FUNCTION = "minegame159/koa/Value$Function";
     public static final String VALUE_FUNCTION_D = "Lminegame159/koa/Value$Function;";
 
-    public static final String WRONGTYPEEXCEPTION = "minegame159/koa/WrongTypeException";
-    public static final String WRONGTYPEEXCEPTION_D = "Lminegame159/koa/WrongTypeException;";
-
-    public static final String WRONGNUMBEROFARGUENTSEXCEPTION = "minegame159/koa/WrongNumberOfArgumentsException";
-    public static final String WRONGNUMBEROFARGUENTSEXCEPTION_D = "Lminegame159/koa/WrongNumberOfArgumentsException;";
+    public static final String ERROR = "minegame159/koa/Error";
+    public static final String ERROR_D = "Lminegame159/koa/Error;";
 
     public static final String STRING_TABLE = "minegame159/koa/tables/StringTable";
     public static final String STRING_TABLE_D = "Lminegame159/koa/tables/StringTable;";

@@ -50,8 +50,8 @@ public class MethodBuilder {
     public void methodInsn(String owner, String name, String... descriptors) {
         m.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, name, ASM.methodDescriptor(descriptors), false);
     }
-    public void methodInsnD(String owner, String name, String descriptor) {
-        m.visitMethodInsn(Opcodes.INVOKEVIRTUAL, owner, name, descriptor, false);
+    public void methodStaticInsn(String owner, String name, String... descriptors) {
+        m.visitMethodInsn(Opcodes.INVOKESTATIC, owner, name, ASM.methodDescriptor(descriptors), false);
     }
 
     public void jumpInsn(int opcode, Label label) {

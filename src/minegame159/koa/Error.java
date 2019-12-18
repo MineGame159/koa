@@ -1,6 +1,6 @@
 package minegame159.koa;
 
-public class Error {
+public class Error extends RuntimeException {
     public int line;
     public String where;
     public String message;

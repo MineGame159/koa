@@ -90,6 +90,10 @@ public class Globals {
         validateResult.printWarnings();
         if (validateResult.hadError()) return;
 
-        Compiler.compile(parseResult.stmts, this).run();
+        try {
+            Compiler.compile(parseResult.stmts, this).run();
+        } catch (Error e) {
+            System.out.println(e);
+        }
     }
 }
