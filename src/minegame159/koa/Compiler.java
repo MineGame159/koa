@@ -279,26 +279,8 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
 
         if (local != null) getLocal(local);
         else {
-            Label lSkip = new Label();
-            Label lExit = new Label();
-
-            m.varInsn(Opcodes.ALOAD, 0);
-            m.fieldInsn(Opcodes.GETFIELD, c.name, "globals", GLOBALS_D);
-            m.fieldInsn(Opcodes.GETFIELD, GLOBALS, "lastTable", VALUE_TABLE_D);
-            m.insn(Opcodes.DUP);
-            m.jumpInsn(Opcodes.IFNULL, lSkip);
-            m.ldcInsn(expr.name.lexeme);
-            tableGet();
-            m.insn(Opcodes.DUP);
-            isNull();
-            m.jumpInsn(Opcodes.IFEQ, lExit);
-
-            m.label(lSkip);
-            m.insn(Opcodes.POP);
             m.ldcInsn(expr.name.lexeme);
             getGlobal();
-
-            m.label(lExit);
         }
     }
 
@@ -515,6 +497,13 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         c = enclosingC;
     }
 
+    @Override
+    public void visitSelfExpr(Expr.Self expr) {
+        m.varInsn(Opcodes.ALOAD, 0);
+        m.fieldInsn(Opcodes.GETFIELD, c.name, "globals", GLOBALS_D);
+        m.fieldInsn(Opcodes.GETFIELD, GLOBALS, "lastTable", VALUE_TABLE_D);
+    }
+
     // Helper methods
 
     private Local addLocal(Token name) {
@@ -603,9 +592,6 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.methodInsnSpecial(VALUE_NUMBER, "<init>", "D", "V");
     }
 
-    private void isNull() {
-        m.methodInsn(VALUE, "isNull", "Z");
-    }
     private void isNumber() {
         m.methodInsn(VALUE, "isNumber", "Z");
     }

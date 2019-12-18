@@ -9,7 +9,7 @@ var person = {
     },
 
     sayHi: function() {
-        print("Hello, I am ", name, " and I am ", age, " years old!");
+        print("Hello, I am ", self.name, " and I am ", self.age, " years old!");
     }
 };
 

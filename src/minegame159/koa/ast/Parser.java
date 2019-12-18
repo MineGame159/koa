@@ -307,6 +307,7 @@ public class Parser {
             case Number:     advance(); return new Expr.Literal(line, Double.parseDouble(previous.lexeme));
             case String:     advance(); return new Expr.Literal(line, previous.lexeme.substring(1, previous.lexeme.length() - 1));
             case Identifier: advance(); return new Expr.Variable(line, previous);
+            case Self:       advance(); return new Expr.Self(line);
             case LeftBrace:  advance(); return tableExpression(line);
             case Function:   advance(); return functionExpression(line);
             case LeftParen: {

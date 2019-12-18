@@ -19,6 +19,7 @@ public abstract class Expr {
         public void visitSetExpr(Set expr);
         public void visitCallExpr(Call expr);
         public void visitFunctionExpr(Function expr);
+        public void visitSelfExpr(Self expr);
     }
 
     public static class Binary extends Expr {
@@ -212,6 +213,17 @@ public abstract class Expr {
         @Override
         public void accept(Visitor visitor) {
             visitor.visitFunctionExpr(this);
+        }
+    }
+
+    public static class Self extends Expr {
+        public Self(int line) {
+            super(line);
+        }
+
+        @Override
+        public void accept(Visitor visitor) {
+            visitor.visitSelfExpr(this);
         }
     }
 

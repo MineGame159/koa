@@ -180,6 +180,11 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
         }
     }
 
+    @Override
+    public void visitSelfExpr(Expr.Self expr) {
+
+    }
+
     // Helper methods
 
     private void validate(Stmt stmt) {
