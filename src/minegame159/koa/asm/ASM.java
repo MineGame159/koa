@@ -22,6 +22,9 @@ public class ASM {
     public static final String VALUE = "minegame159/koa/Value";
     public static final String VALUE_D = "Lminegame159/koa/Value;";
 
+    public static final String VALUETYPE = "minegame159/koa/Value$Type";
+    public static final String VALUETYPE_D = "Lminegame159/koa/Value$Type;";
+
     public static final String VALUE_NULL = "minegame159/koa/Value$Null";
     public static final String VALUE_NULL_D = "Lminegame159/koa/Value$Null;";
 

@@ -608,7 +608,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
         isNumber();
         m.jumpInsn(Opcodes.IFGT, lOk);
-        throwWrongTypeException();
+        throwWrongTypeException(Value.Type.Number);
 
         m.label(lOk);
         m.methodInsn(VALUE, "toNumber", "D");
@@ -619,7 +619,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
         isTable();
         m.jumpInsn(Opcodes.IFGT, lOk);
-        throwWrongTypeException();
+        throwWrongTypeException(Value.Type.Table);
 
         m.label(lOk);
         m.methodInsn(VALUE, "toTable", VALUE_TABLE_D);
@@ -630,7 +630,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
         isFunction();
         m.jumpInsn(Opcodes.IFGT, lOk);
-        throwWrongTypeException();
+        throwWrongTypeException(Value.Type.Function);
 
         m.label(lOk);
         m.methodInsn(VALUE, "toFunction", VALUE_FUNCTION_D);
@@ -664,11 +664,19 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.label(lExit);
     }
 
-    private void throwWrongTypeException() {
+    private void throwWrongTypeException(Value.Type expected) {
+        m.fieldInsn(Opcodes.GETFIELD, VALUE, "type", VALUETYPE_D);
+        m.varInsn(Opcodes.ASTORE, 2);
         m.typeInsn(Opcodes.NEW, WRONGTYPEEXCEPTION);
         m.insn(Opcodes.DUP);
         m.ldcInsn(line);
-        m.methodInsnSpecial(WRONGTYPEEXCEPTION, "<init>", "I", "V");
+        switch (expected) {
+            case Number:   m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Number", VALUETYPE_D); break;
+            case Table:    m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Table", VALUETYPE_D); break;
+            case Function: m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Function", VALUETYPE_D); break;
+        }
+        m.varInsn(Opcodes.ALOAD, 2);
+        m.methodInsnSpecial(WRONGTYPEEXCEPTION, "<init>", "I", VALUETYPE_D, VALUETYPE_D, "V");
         m.insn(Opcodes.ATHROW);
     }
     private void throwWrongNumberOfArgumentsException(int got) {
