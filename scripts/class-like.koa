@@ -1,0 +1,17 @@
+var person = {
+    new: function(name, age) {
+        var obj = {
+            name: name,
+            age: age
+        };
+        setMetatable(obj, person);
+        return obj;
+    },
+
+    sayHi: function() {
+        print("Hello, I am ", name, " and I am ", age, " years old!");
+    }
+};
+
+var me = person.new("MineGame159", 15);
+me.sayHi();

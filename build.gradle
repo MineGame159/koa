@@ -1,0 +1,27 @@
+plugins {
+    id "java"
+    id "application"
+}
+
+group 'minegame159'
+version '0.1.0'
+mainClassName = "minegame159.koa.KoaMain"
+
+sourceCompatibility = 1.8
+sourceSets.main.java.srcDir("src")
+
+repositories {
+    mavenCentral()
+}
+
+project.ext.asmVersion = "7.2"
+
+dependencies {
+    implementation "org.ow2.asm:asm:$asmVersion"
+}
+
+jar {
+    manifest {
+        attributes("Main-Class": mainClassName)
+    }
+}

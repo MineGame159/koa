@@ -1,0 +1,3 @@
+include "core", "binary", "example"
+rootProject.name = 'koa'
+
