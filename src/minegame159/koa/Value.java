@@ -67,13 +67,16 @@ public abstract class Value {
         }
         public Value get(String key) {
             Value value = values.get(key);
-            if (metatable != null && value == null) value = metatable.get(key);
+            if (value == null && metatable != null && metatable.mtContainsIndex()) value = metatable.mtGetIndex().toTable().get(key);
             return value;
         }
         public Value getOrNull(String key) {
             Value value = values.get(key);
-            if (metatable != null && value == null) value = metatable.get(key);
+            if (value == null && metatable != null && metatable.mtContainsIndex()) value = metatable.mtGetIndex().toTable().get(key);
             return value != null ? value : NULL;
+        }
+        public boolean contains(String key) {
+            return values.containsKey(key);
         }
 
         public void setMetatable(Table metatable) {
@@ -82,10 +85,23 @@ public abstract class Value {
         public Table getMetatable() {
             return metatable;
         }
+        public boolean mtContainsIndex() {
+            return values.containsKey("__index");
+        }
+        public Table mtGetIndex() {
+            return values.get("__index").toTable();
+        }
+        public boolean mtContainsToString() {
+            return values.containsKey("__toString");
+        }
+        public Function mtGetToString() {
+            return values.get("__toString").toFunction();
+        }
 
         @Override
         public String toString() {
-            return "table";
+            if (metatable != null && metatable.mtContainsToString()) return metatable.mtGetToString().run(this).toString();
+            else return "table";
         }
     }
 

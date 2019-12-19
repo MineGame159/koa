@@ -1,10 +1,10 @@
-var person = {
+var Person = {
     new: function(name, age) {
         var obj = {
             name: name,
             age: age
         };
-        setMetatable(obj, person);
+        setMetatable(obj, Person.mt);
         return obj;
     },
 
@@ -12,6 +12,13 @@ var person = {
         print("Hello, I am ", self.name, " and I am ", self.age, " years old!");
     }
 };
+Person.mt = {
+    __index: Person,
+    __toString: function() {
+        return "Hi";
+    }
+};
 
-var me = person.new("MineGame159", 15);
+var me = Person.new("MineGame159", 15);
+print(me);
 me.sayHi();
