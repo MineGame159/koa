@@ -96,7 +96,7 @@ public abstract class Value {
 
         public abstract int argCount();
 
-        public abstract Value run(Value... args);
+        public abstract Value run(Table table, Value... args);
 
         @Override
         public String toString() {

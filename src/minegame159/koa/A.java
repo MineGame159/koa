@@ -1,7 +1,9 @@
 package minegame159.koa;
 
 public class A {
-    public String a() {
-        return Integer.toString(9);
+    private Value a;
+
+    public void a() {
+        a = null;
     }
 }

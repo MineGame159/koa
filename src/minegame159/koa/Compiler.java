@@ -25,6 +25,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     private Compiler(String className, ArrayList<Stmt> stmts) {
         c = new ClassBuilder("minegame159/koa/compiled/" + className, OBJECT, new String[] {RUNNABLE});
         c.field("globals", GLOBALS_D);
+        c.field("lastTable", VALUE_TABLE_D);
         {   // constructor
             MethodBuilder m = c.method("<init>", "V");
             m.callSuper();
@@ -363,9 +364,8 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         // Set last table
         m.insn(Opcodes.DUP);
         m.varInsn(Opcodes.ALOAD, 0);
-        m.fieldInsn(Opcodes.GETFIELD, c.name, "globals", GLOBALS_D);
         m.insn(Opcodes.SWAP);
-        m.fieldInsn(Opcodes.PUTFIELD, GLOBALS, "lastTable", VALUE_TABLE_D);
+        m.fieldInsn(Opcodes.PUTFIELD, c.name, "lastTable", VALUE_TABLE_D);
 
         m.ldcInsn(expr.name.lexeme);
         tableGet();
@@ -439,6 +439,8 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
 
         // Prepare arguments
         m.label(lOk);
+        m.varInsn(Opcodes.ALOAD, 0);
+        m.fieldInsn(Opcodes.GETFIELD, c.name, "lastTable", VALUE_TABLE_D);
         m.ldcInsn(expr.args.size());
         m.typeInsn(Opcodes.ANEWARRAY, VALUE);
         for (int i = 0; i < expr.args.size(); i++) {
@@ -449,7 +451,12 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         }
 
         // Call function
-        m.methodInsn(VALUE_FUNCTION, "run", "[" + VALUE_D, VALUE_D);
+        m.methodInsn(VALUE_FUNCTION, "run", VALUE_TABLE_D, "[" + VALUE_D, VALUE_D);
+
+        // Clear last table
+        m.varInsn(Opcodes.ALOAD, 0);
+        m.insn(Opcodes.ACONST_NULL);
+        m.fieldInsn(Opcodes.PUTFIELD, c.name, "lastTable", VALUE_TABLE_D);
     }
 
     @Override
@@ -458,6 +465,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         c = new ClassBuilder(c.name + "Function" + functionCount, VALUE_FUNCTION, null);
 
         c.field("globals", GLOBALS_D);
+        c.field("lastTable", VALUE_TABLE_D);
         {   // constructor
             MethodBuilder m = c.method("<init>", "V");
             m.callSuper();
@@ -474,7 +482,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
             ArrayList<Local> enclosingLocals = locals;
             locals = new ArrayList<>();
             MethodBuilder enclosingM = m;
-            m = c.method("run", "[" + VALUE_D, VALUE_D);
+            m = c.method("run", VALUE_TABLE_D, "[" + VALUE_D, VALUE_D);
             for (int i = 0; i < expr.args.size(); i++) addLocalFunctionArgument(expr.args.get(i), i);
             for (int i = 0; i < expr.stmts.size(); i++) compile(expr.stmts.get(i));
             emitNull();
@@ -499,9 +507,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
 
     @Override
     public void visitSelfExpr(Expr.Self expr) {
-        m.varInsn(Opcodes.ALOAD, 0);
-        m.fieldInsn(Opcodes.GETFIELD, c.name, "globals", GLOBALS_D);
-        m.fieldInsn(Opcodes.GETFIELD, GLOBALS, "lastTable", VALUE_TABLE_D);
+        m.varInsn(Opcodes.ALOAD, 1);
     }
 
     // Helper methods
@@ -531,7 +537,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     private void getLocal(Local local) {
         if (!local.functionArgument) m.varInsn(Opcodes.ALOAD, local.index);
         else {
-            m.varInsn(Opcodes.ALOAD, 1);
+            m.varInsn(Opcodes.ALOAD, 2);
             m.ldcInsn(local.index);
             m.insn(Opcodes.AALOAD);
         }
@@ -546,11 +552,11 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     }
 
     private void setGlobal() { // key, value
-        m.varInsn(Opcodes.ASTORE, 2); // key
+        m.varInsn(Opcodes.ASTORE, 3); // key
         m.varInsn(Opcodes.ALOAD, 0); // key, this
         m.fieldInsn(Opcodes.GETFIELD, c.name, "globals", GLOBALS_D); // key, globals
         m.insn(Opcodes.SWAP); // globals, key
-        m.varInsn(Opcodes.ALOAD, 2); // globals, key, value
+        m.varInsn(Opcodes.ALOAD, 3); // globals, key, value
         m.methodInsn(GLOBALS, "set", STRING_D, VALUE_D, "V"); // -/-
     }
     private void getGlobal() { // key
@@ -571,10 +577,10 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.methodInsnSpecial(VALUE_BOOL, "<init>", "Z", "V");
     }
     private void emitBool() {
-        m.varInsn(Opcodes.ISTORE, 2);
+        m.varInsn(Opcodes.ISTORE, 3);
         m.typeInsn(Opcodes.NEW, VALUE_BOOL);
         m.insn(Opcodes.DUP);
-        m.varInsn(Opcodes.ILOAD, 2);
+        m.varInsn(Opcodes.ILOAD, 3);
         m.methodInsnSpecial(VALUE_BOOL, "<init>", "Z", "V");
     }
 
@@ -585,10 +591,10 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.methodInsnSpecial(VALUE_NUMBER, "<init>", "D", "V");
     }
     private void emitNumber() {
-        m.varInsn(Opcodes.DSTORE, 2);
+        m.varInsn(Opcodes.DSTORE, 3);
         m.typeInsn(Opcodes.NEW, VALUE_NUMBER);
         m.insn(Opcodes.DUP);
-        m.varInsn(Opcodes.DLOAD, 2);
+        m.varInsn(Opcodes.DLOAD, 3);
         m.methodInsnSpecial(VALUE_NUMBER, "<init>", "D", "V");
     }
 
@@ -667,7 +673,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     private void throwWrongTypeException(Value.Type expected) {
         m.fieldInsn(Opcodes.GETFIELD, VALUE, "type", VALUETYPE_D);
         valueTypeToString();
-        m.varInsn(Opcodes.ASTORE, 2);
+        m.varInsn(Opcodes.ASTORE, 3);
         m.typeInsn(Opcodes.NEW, ERROR);
         m.insn(Opcodes.DUP);
         m.ldcInsn(line);
@@ -682,7 +688,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         stringConcat();
         m.ldcInsn(", Got: ");
         stringConcat();
-        m.varInsn(Opcodes.ALOAD, 2);
+        m.varInsn(Opcodes.ALOAD, 3);
         stringConcat();
 
         m.methodInsnSpecial(ERROR, "<init>", "I", STRING_D, "V");
@@ -690,13 +696,13 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     }
     private void throwWrongNumberOfArgumentsException(int got) {
         intToString();
-        m.varInsn(Opcodes.ASTORE, 2);
+        m.varInsn(Opcodes.ASTORE, 3);
         m.typeInsn(Opcodes.NEW, ERROR);
         m.insn(Opcodes.DUP);
         m.ldcInsn(line);
 
         m.ldcInsn("Wrong number of arguments - Expected: ");
-        m.varInsn(Opcodes.ALOAD, 2);
+        m.varInsn(Opcodes.ALOAD, 3);
         stringConcat();
         m.ldcInsn(", Got: ");
         stringConcat();

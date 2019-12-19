@@ -8,7 +8,6 @@ import java.util.Map;
 
 public class Globals {
     private final Map<String, Value> globals = new HashMap<>();
-    public Value.Table lastTable;
 
     public Globals() {
         set("print", new Value.Function() {
@@ -18,7 +17,7 @@ public class Globals {
             }
 
             @Override
-            public Value run(Value[] args) {
+            public Value run(Table table, Value[] args) {
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < args.length; i++) sb.append(args[i]);
                 System.out.println(sb);
@@ -33,7 +32,7 @@ public class Globals {
             }
 
             @Override
-            public Value run(Value... args) {
+            public Value run(Table table, Value... args) {
                 args[0].toTable().setMetatable(args[1].toTable());
                 return Value.NULL;
             }
@@ -46,7 +45,7 @@ public class Globals {
             }
 
             @Override
-            public Value run(Value... args) {
+            public Value run(Table table, Value... args) {
                 Table metatable = args[0].toTable().getMetatable();
                 return metatable != null ? metatable : Value.NULL;
             }
@@ -59,7 +58,7 @@ public class Globals {
             }
 
             @Override
-            public Value run(Value... args) {
+            public Value run(Table table, Value... args) {
                 return new Number(System.currentTimeMillis() / 1000.0);
             }
         });

@@ -15,7 +15,7 @@ public class StringTable extends Value.Table {
             }
 
             @Override
-            public Value run(Value[] args) {
+            public Value run(Table table, Value[] args) {
                 return new Number(value.length());
             }
         });
