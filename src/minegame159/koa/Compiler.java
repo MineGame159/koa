@@ -491,11 +491,37 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     @Override
     public void visitCallExpr(Expr.Call expr) {
         Label lOk = new Label();
+        Label lTable = new Label();
+        Label lTableOk = new Label();
+        Label lHasFunction = new Label();
+        Label lHasFunction2 = new Label();
 
+        // Check if callee is function or table with __call metafunction
         compile(expr.callee);
-        toFunction(); // function
+        m.insn(Opcodes.DUP);
+        isFunction();
+        m.jumpInsn(Opcodes.IFGT, lHasFunction);
+        m.insn(Opcodes.DUP);
+        isTable();
+        m.jumpInsn(Opcodes.IFGT, lTable);
+        wrongTypeError(Value.Type.Function, Value.Type.Table);
+
+        // Get __call function from table
+        m.label(lTable);
+        toTable();
+        m.insn(Opcodes.DUP);
+        m.methodInsn(VALUE_TABLE, "mtContainsCall", "Z");
+        m.jumpInsn(Opcodes.IFGT, lTableOk);
+        wrongTypeError(Value.Type.Function, Value.Type.Table);
+
+        m.label(lTableOk);
+        m.methodInsn(VALUE_TABLE, "mtGetCall", VALUE_FUNCTION_D);
+        m.jumpInsn(Opcodes.GOTO, lHasFunction2);
 
         // Check if var arg
+        m.label(lHasFunction);
+        toFunction();
+        m.label(lHasFunction2);
         m.insn(Opcodes.DUP); // function, function
         m.methodInsn(VALUE_FUNCTION, "argCount", "I"); // function, functionArgCount
         m.jumpInsn(Opcodes.IFLT, lOk); // function

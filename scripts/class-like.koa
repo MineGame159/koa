@@ -16,9 +16,19 @@ Person.mt = {
     __index: Person,
     __toString: function() {
         return self.name + ", " + self.age
+    },
+    __call: function(name, age) {
+        return Person.new(name, age)
     }
 }
+setMetatable(Person, Person.mt)
 
 var me = Person.new("MineGame159", 15)
 print(me)
 me.sayHi()
+
+print()
+
+var someone = Person("Patrick", 99)
+print(someone)
+someone.sayHi()
