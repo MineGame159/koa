@@ -1,53 +1,53 @@
 // Basic
 
 var add = function(a, b) {
-    return a + b;
-};
+    return a + b
+}
 
-var a = 5.2;
-var b = 6.9;
-var result = add(a, b);
-print(a, " + ", b, " = ", result);
-print();
+var a = 5.2
+var b = 6.9
+var result = add(a, b)
+print(a, " + ", b, " = ", result)
+print()
 
 
 // Return function from function
 
-test()();
+test()()
 
 var test = function() {
     return function() {
-        print("Test");
-    };
-};
+        print("Test")
+    }
+}
 
-test()();
-print();
+test()()
+print()
 
 
 // Recursive function
 
 var count = function(n) {
-    if (n > 1) count(n - 1);
-    print(n);
-};
+    if (n > 1) count(n - 1)
+    print(n)
+}
 
-count(3);
-print();
+count(3)
+print()
 
 
 // Closure
 
 var makeCounter = function() {
-    var i = 0;
+    var i = 0
     return function() {
-        i++;
-        print(i);
-    };
-};
+        i++
+        print(i)
+    }
+}
 
-var counter = makeCounter();
-counter();
-counter();
-counter();
-print();
+var counter = makeCounter()
+counter()
+counter()
+counter()
+print()

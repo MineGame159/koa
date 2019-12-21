@@ -3,22 +3,22 @@ var Person = {
         var obj = {
             name: name,
             age: age
-        };
-        setMetatable(obj, Person.mt);
-        return obj;
+        }
+        setMetatable(obj, Person.mt)
+        return obj
     },
 
     sayHi: function() {
-        print("Hello, I am ", self.name, " and I am ", self.age, " years old!");
+        print("Hello, I am ", self.name, " and I am ", self.age, " years old!")
     }
-};
+}
 Person.mt = {
     __index: Person,
     __toString: function() {
-        return self.name + ", " + self.age;
+        return self.name + ", " + self.age
     }
-};
+}
 
-var me = Person.new("MineGame159", 15);
-print(me);
-me.sayHi();
+var me = Person.new("MineGame159", 15)
+print(me)
+me.sayHi()

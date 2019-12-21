@@ -74,7 +74,6 @@ public class Parser {
         Expr initializer = null;
         if (match(Token.Type.Equal)) initializer = expression();
 
-        consume(Token.Type.Semicolon, "Expected ';' after variable declaration.");
         return new Stmt.Var(line, name, initializer);
     }
 
@@ -138,27 +137,23 @@ public class Parser {
 
     private Stmt breakStatement() {
         int line = current.line;
-        consume(Token.Type.Semicolon, "Expected ';' after 'break'.");
         return new Stmt.Break(line);
     }
 
     private Stmt continueStatement() {
         int line = current.line;
-        consume(Token.Type.Semicolon, "Expected ';' after 'continue'.");
         return new Stmt.Continue(line);
     }
 
     private Stmt expressionStatement() {
         int line = current.line;
         Expr expr = expression();
-        consume(Token.Type.Semicolon, "Expected ';' after expression");
         return new Stmt.Expression(line, expr);
     }
 
     private Stmt returnStatement() {
         int line = current.line;
         Expr value = expression();
-        consume(Token.Type.Semicolon, "Expected ';' after return.");
         return new Stmt.Return(line, value);
     }
 
