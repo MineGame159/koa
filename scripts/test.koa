@@ -51,3 +51,10 @@ counter()
 counter()
 counter()
 print()
+
+// String comparison
+
+var a = "OMG"
+var b = "asmd"
+print(a, " == ", a, " - ", a == a)
+print(a, " == ", b, " - ", a == b)

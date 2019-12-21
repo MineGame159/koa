@@ -20,6 +20,17 @@ public class StringTable extends Value.Table {
                 return new StringTable(value + args[0]);
             }
         });
+        mt.set("__equal", new Function() {
+            @Override
+            public int argCount() {
+                return 1;
+            }
+
+            @Override
+            public Value run(Table table, Value... args) {
+                return new Bool(value.equals(args[0].toString()));
+            }
+        });
         setMetatable(mt);
 
         set("length", new Function() {

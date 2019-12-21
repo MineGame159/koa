@@ -133,6 +133,12 @@ public abstract class Value {
         public Function mtGetCall() {
             return metatable.get("__call").toFunction();
         }
+        public boolean mtContainsEqual() {
+            return metatable != null && metatable.contains("__equal");
+        }
+        public Function mtGetEqual() {
+            return metatable.get("__equal").toFunction();
+        }
 
         @Override
         public String toString() {
@@ -205,6 +211,8 @@ public abstract class Value {
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Value) || type != ((Value) obj).type) return false;
+
+        if (this instanceof Table && ((Table) this).mtContainsEqual()) return ((Table) this).mtGetEqual().run((Table) this, (Value) obj).toBool();
 
         switch (type) {
             case Null:   return true;
