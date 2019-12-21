@@ -174,8 +174,9 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
         for (int i = 0; i < expr.stmts.size(); i++) validate(expr.stmts.get(i));
         insideFunction = enclosingInsideFunction;
 
-        if (expr.stmts.size() > 0 && !(expr.stmts.get(expr.stmts.size() - 1) instanceof Stmt.Return)) {
-            int line = expr.stmts.get(expr.stmts.size() - 1).line;
+        if ((expr.stmts.size() > 0 && !(expr.stmts.get(expr.stmts.size() - 1) instanceof Stmt.Return)) || expr.stmts.size() == 0) {
+            int line = 0;
+            if (expr.stmts.size() > 0) line = expr.stmts.get(expr.stmts.size() - 1).line;
             expr.stmts.add(new Stmt.Return(line, new Expr.Literal(line, null)));
         }
     }

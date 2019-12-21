@@ -15,7 +15,7 @@ var Person = {
 Person.mt = {
     __index: Person,
     __toString: function() {
-        return "Hi";
+        return self.name + ", " + self.age;
     }
 };
 

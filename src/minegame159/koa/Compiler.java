@@ -206,10 +206,22 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
             m.label(lExit);
             emitBool();
         } else {
+            Label lNumber = new Label();
+            Label lTable = new Label();
+            Label lExit = new Label();
+
+            m.insn(Opcodes.DUP);
+            isNumber();
+            m.jumpInsn(Opcodes.IFGT, lNumber);
+            m.insn(Opcodes.DUP);
+            isTable();
+            m.jumpInsn(Opcodes.IFGT, lTable);
+            wrongTypeError(Value.Type.Number, Value.Type.Table);
+
+            m.label(lNumber); // Number
             toNumber();
             compile(expr.right);
             toNumber();
-
             switch (expr.operator.type) {
                 case Plus:       m.insn(Opcodes.DADD); break;
                 case Minus:      m.insn(Opcodes.DSUB); break;
@@ -217,8 +229,20 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
                 case Slash:      m.insn(Opcodes.DDIV); break;
                 case Percentage: m.insn(Opcodes.DREM); break;
             }
-
             emitNumber();
+            m.jumpInsn(Opcodes.GOTO, lExit);
+
+            m.label(lTable); // Table
+            toTable();
+            switch (expr.operator.type) {
+                case Plus:       binaryThingy("Add", expr.right); break;
+                case Minus:      binaryThingy("Subtract", expr.right); break;
+                case Star:       binaryThingy("Multiply", expr.right); break;
+                case Slash:      binaryThingy("Divide", expr.right); break;
+                case Percentage: binaryThingy("Remainder", expr.right); break;
+            }
+
+            m.label(lExit);
         }
     }
 
@@ -314,10 +338,22 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
                 m.insn(expr.operator.type == Token.Type.PlusPlus ? Opcodes.DADD : Opcodes.DSUB);
                 emitNumber();
             } else { // +=, -=, *=, /=, %=
+                Label lNumber = new Label();
+                Label lTable = new Label();
+                Label lExit = new Label();
+
+                m.insn(Opcodes.DUP);
+                isNumber();
+                m.jumpInsn(Opcodes.IFGT, lNumber);
+                m.insn(Opcodes.DUP);
+                isTable();
+                m.jumpInsn(Opcodes.IFGT, lTable);
+                wrongTypeError(Value.Type.Number, Value.Type.Table);
+
+                m.label(lNumber); // Number
                 toNumber();
                 compile(expr.value);
                 toNumber();
-
                 switch (expr.operator.type) {
                     case PlusEqual:       m.insn(Opcodes.DADD); break;
                     case MinusEqual:      m.insn(Opcodes.DSUB); break;
@@ -325,8 +361,20 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
                     case SlashEqual:      m.insn(Opcodes.DDIV); break;
                     case PercentageEqual: m.insn(Opcodes.DREM); break;
                 }
-
                 emitNumber();
+                m.jumpInsn(Opcodes.GOTO, lExit);
+
+                m.label(lTable); // Table
+                toTable();
+                switch (expr.operator.type) {
+                    case PlusEqual:       binaryThingy("Add", expr.value); break;
+                    case MinusEqual:      binaryThingy("Subtract", expr.value); break;
+                    case StarEqual:       binaryThingy("Multiply", expr.value); break;
+                    case SlashEqual:      binaryThingy("Divide", expr.value); break;
+                    case PercentageEqual: binaryThingy("Remainder", expr.value); break;
+                }
+
+                m.label(lExit);
             }
 
             // Set value
@@ -394,10 +442,22 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
                 m.insn(expr.operator.type == Token.Type.PlusPlus ? Opcodes.DADD : Opcodes.DSUB);
                 emitNumber();
             } else { // +=, -=, *=, /=, %=
+                Label lNumber = new Label();
+                Label lTable = new Label();
+                Label lExit = new Label();
+
+                m.insn(Opcodes.DUP);
+                isNumber();
+                m.jumpInsn(Opcodes.IFGT, lNumber);
+                m.insn(Opcodes.DUP);
+                isTable();
+                m.jumpInsn(Opcodes.IFGT, lTable);
+                wrongTypeError(Value.Type.Number, Value.Type.Table);
+
+                m.label(lNumber); // Number
                 toNumber();
                 compile(expr.value);
                 toNumber();
-
                 switch (expr.operator.type) {
                     case PlusEqual:       m.insn(Opcodes.DADD); break;
                     case MinusEqual:      m.insn(Opcodes.DSUB); break;
@@ -405,8 +465,20 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
                     case SlashEqual:      m.insn(Opcodes.DDIV); break;
                     case PercentageEqual: m.insn(Opcodes.DREM); break;
                 }
-
                 emitNumber();
+                m.jumpInsn(Opcodes.GOTO, lExit);
+
+                m.label(lTable); // Table
+                toTable();
+                switch (expr.operator.type) {
+                    case PlusEqual:       binaryThingy("Add", expr.value); break;
+                    case MinusEqual:      binaryThingy("Subtract", expr.value); break;
+                    case StarEqual:       binaryThingy("Multiply", expr.value); break;
+                    case SlashEqual:      binaryThingy("Divide", expr.value); break;
+                    case PercentageEqual: binaryThingy("Remainder", expr.value); break;
+                }
+
+                m.label(lExit);
             }
 
             // Set value
@@ -435,23 +507,16 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.methodInsn(VALUE_FUNCTION, "argCount", "I"); // function, argCount, functionArgCount
         m.jumpInsn(Opcodes.IF_ICMPEQ, lOk);
         m.methodInsn(VALUE_FUNCTION, "argCount", "I");
-        throwWrongNumberOfArgumentsException(expr.args.size());
+        wrongNumberOfArgumentsError(expr.args.size());
 
         // Prepare arguments
         m.label(lOk);
-        m.varInsn(Opcodes.ALOAD, 0);
-        m.fieldInsn(Opcodes.GETFIELD, c.name, "lastTable", VALUE_TABLE_D);
-        m.ldcInsn(expr.args.size());
-        m.typeInsn(Opcodes.ANEWARRAY, VALUE);
-        for (int i = 0; i < expr.args.size(); i++) {
-            m.insn(Opcodes.DUP);
-            m.ldcInsn(i);
-            compile(expr.args.get(i));
-            m.insn(Opcodes.AASTORE);
-        }
+        getLastTable();
+        newValueArray(expr.args.size());
+        for (int i = 0; i < expr.args.size(); i++) valueArrayAdd(i, expr.args.get(i));
 
         // Call function
-        m.methodInsn(VALUE_FUNCTION, "run", VALUE_TABLE_D, "[" + VALUE_D, VALUE_D);
+        callFunction();
 
         // Clear last table
         m.varInsn(Opcodes.ALOAD, 0);
@@ -511,6 +576,40 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
     }
 
     // Helper methods
+
+    private void binaryThingy(String thing, Expr expr) {
+        Label lOk = new Label();
+
+        m.insn(Opcodes.DUP);
+        m.methodInsn(VALUE_TABLE, "mtContains" + thing, "Z");
+        m.jumpInsn(Opcodes.IFGT, lOk);
+        wrongTypeError(Value.Type.Number, Value.Type.Table);
+
+        m.label(lOk);
+        m.methodInsn(VALUE_TABLE, "mtGet" + thing, VALUE_FUNCTION_D);
+        getLastTable();
+        newValueArray(1);
+        valueArrayAdd(0, expr);
+        callFunction();
+    }
+
+    private void getLastTable() {
+        m.varInsn(Opcodes.ALOAD, 0);
+        m.fieldInsn(Opcodes.GETFIELD, c.name, "lastTable", VALUE_TABLE_D);
+    }
+    private void newValueArray(int size) {
+        m.ldcInsn(size);
+        m.typeInsn(Opcodes.ANEWARRAY, VALUE);
+    }
+    private void valueArrayAdd(int i, Expr expr) {
+        m.insn(Opcodes.DUP);
+        m.ldcInsn(i);
+        compile(expr);
+        m.insn(Opcodes.AASTORE);
+    }
+    private void callFunction() {
+        m.methodInsn(VALUE_FUNCTION, "run", VALUE_TABLE_D, "[" + VALUE_D, VALUE_D);
+    }
 
     private Local addLocal(Token name) {
         int index;
@@ -614,7 +713,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
         isNumber();
         m.jumpInsn(Opcodes.IFGT, lOk);
-        throwWrongTypeException(Value.Type.Number);
+        wrongTypeError(Value.Type.Number);
 
         m.label(lOk);
         m.methodInsn(VALUE, "toNumber", "D");
@@ -625,7 +724,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
         isTable();
         m.jumpInsn(Opcodes.IFGT, lOk);
-        throwWrongTypeException(Value.Type.Table);
+        wrongTypeError(Value.Type.Table);
 
         m.label(lOk);
         m.methodInsn(VALUE, "toTable", VALUE_TABLE_D);
@@ -636,7 +735,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
         isFunction();
         m.jumpInsn(Opcodes.IFGT, lOk);
-        throwWrongTypeException(Value.Type.Function);
+        wrongTypeError(Value.Type.Function);
 
         m.label(lOk);
         m.methodInsn(VALUE, "toFunction", VALUE_FUNCTION_D);
@@ -670,7 +769,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.label(lExit);
     }
 
-    private void throwWrongTypeException(Value.Type expected) {
+    private void wrongTypeError(Value.Type... expected) {
         m.fieldInsn(Opcodes.GETFIELD, VALUE, "type", VALUETYPE_D);
         valueTypeToString();
         m.varInsn(Opcodes.ASTORE, 3);
@@ -679,13 +778,15 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.ldcInsn(line);
 
         m.ldcInsn("Wrong Type - Expected: ");
-        switch (expected) {
-            case Number:   m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Number", VALUETYPE_D); break;
-            case Table:    m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Table", VALUETYPE_D); break;
-            case Function: m.fieldInsn(Opcodes.GETSTATIC, VALUETYPE, "Function", VALUETYPE_D); break;
+        for (int i = 0; i < expected.length; i++) {
+            if (i > 0) {
+                m.ldcInsn(" or ");
+                stringConcat();
+            }
+
+            m.ldcInsn(expected[i].toString());
+            stringConcat();
         }
-        valueTypeToString();
-        stringConcat();
         m.ldcInsn(", Got: ");
         stringConcat();
         m.varInsn(Opcodes.ALOAD, 3);
@@ -694,7 +795,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.methodInsnSpecial(ERROR, "<init>", "I", STRING_D, "V");
         m.insn(Opcodes.ATHROW);
     }
-    private void throwWrongNumberOfArgumentsException(int got) {
+    private void wrongNumberOfArgumentsError(int got) {
         intToString();
         m.varInsn(Opcodes.ASTORE, 3);
         m.typeInsn(Opcodes.NEW, ERROR);

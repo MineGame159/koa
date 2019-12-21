@@ -67,12 +67,12 @@ public abstract class Value {
         }
         public Value get(String key) {
             Value value = values.get(key);
-            if (value == null && metatable != null && metatable.mtContainsIndex()) value = metatable.mtGetIndex().toTable().get(key);
+            if (value == null && metatable != null && mtContainsIndex()) value = mtGetIndex().toTable().get(key);
             return value;
         }
         public Value getOrNull(String key) {
             Value value = values.get(key);
-            if (value == null && metatable != null && metatable.mtContainsIndex()) value = metatable.mtGetIndex().toTable().get(key);
+            if (value == null && metatable != null && mtContainsIndex()) value = mtGetIndex().toTable().get(key);
             return value != null ? value : NULL;
         }
         public boolean contains(String key) {
@@ -86,21 +86,51 @@ public abstract class Value {
             return metatable;
         }
         public boolean mtContainsIndex() {
-            return values.containsKey("__index");
+            return metatable.contains("__index");
         }
         public Table mtGetIndex() {
-            return values.get("__index").toTable();
+            return metatable.get("__index").toTable();
         }
         public boolean mtContainsToString() {
-            return values.containsKey("__toString");
+            return metatable.contains("__toString");
         }
         public Function mtGetToString() {
-            return values.get("__toString").toFunction();
+            return metatable.get("__toString").toFunction();
+        }
+        public boolean mtContainsAdd() {
+            return metatable.contains("__add");
+        }
+        public Function mtGetAdd() {
+            return metatable.get("__add").toFunction();
+        }
+        public boolean mtContainsSubtract() {
+            return metatable.contains("__subtract");
+        }
+        public Function mtGetSubtract() {
+            return metatable.get("__subtract").toFunction();
+        }
+        public boolean mtContainsMultiply() {
+            return metatable.contains("__multiplay");
+        }
+        public Function mtGetMultiply() {
+            return metatable.get("__multiply").toFunction();
+        }
+        public boolean mtContainsDivide() {
+            return metatable.contains("__divide");
+        }
+        public Function mtGetDivide() {
+            return metatable.get("__divide").toFunction();
+        }
+        public boolean mtContainsRemainder() {
+            return metatable.contains("__remainder");
+        }
+        public Function mtGetRemainder() {
+            return metatable.get("__remainder").toFunction();
         }
 
         @Override
         public String toString() {
-            if (metatable != null && metatable.mtContainsToString()) return metatable.mtGetToString().run(this).toString();
+            if (metatable != null && mtContainsToString()) return mtGetToString().run(this).toString();
             else return "table";
         }
     }
