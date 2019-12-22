@@ -27,6 +27,8 @@ public class Lexer {
             case ')': return makeToken(Token.Type.RightParen);
             case '{': return makeToken(Token.Type.LeftBrace);
             case '}': return makeToken(Token.Type.RightBrace);
+            case '[': return makeToken(Token.Type.LeftBracket);
+            case ']': return makeToken(Token.Type.RightBracket);
             case ',': return makeToken(Token.Type.Comma);
             case '.': return makeToken(Token.Type.Dot);
             case ';': return makeToken(Token.Type.Semicolon);

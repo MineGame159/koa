@@ -415,7 +415,11 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.SWAP);
         m.fieldInsn(Opcodes.PUTFIELD, c.name, "lastTable", VALUE_TABLE_D);
 
-        m.ldcInsn(expr.name.lexeme);
+        if (expr.name != null) m.ldcInsn(expr.name.lexeme);
+        else {
+            compile(expr.key);
+            m.methodInsn(VALUE, "toString", STRING_D);
+        }
         tableGet();
     }
 
@@ -426,13 +430,21 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.insn(Opcodes.DUP);
 
         if (expr.operator.type == Token.Type.Equal) { // =
-            m.ldcInsn(expr.name.lexeme);
+            if (expr.name != null) m.ldcInsn(expr.name.lexeme);
+            else {
+                compile(expr.key);
+                m.methodInsn(VALUE, "toString", STRING_D);
+            }
             compile(expr.value);
             tableSet();
         } else { // ++, --, +=, -=, *=, /=, %=
             // Get value
             m.insn(Opcodes.DUP);
-            m.ldcInsn(expr.name.lexeme);
+            if (expr.name != null) m.ldcInsn(expr.name.lexeme);
+            else {
+                compile(expr.key);
+                m.methodInsn(VALUE, "toString", STRING_D);
+            }
             tableGet();
 
             // Compute value
@@ -482,7 +494,11 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
             }
 
             // Set value
-            m.ldcInsn(expr.name.lexeme);
+            if (expr.name != null) m.ldcInsn(expr.name.lexeme);
+            else {
+                compile(expr.key);
+                m.methodInsn(VALUE, "toString", STRING_D);
+            }
             m.insn(Opcodes.SWAP);
             tableSet();
         }

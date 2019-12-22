@@ -173,7 +173,10 @@ public class Parser {
             if (previous.type != Token.Type.PlusPlus && previous.type != Token.Type.MinusMinus) value = assignment();
 
             if (expr instanceof Expr.Variable) return new Expr.Assign(line, ((Expr.Variable) expr).name, operator, value);
-            else if (expr instanceof Expr.Get) return new Expr.Set(line, ((Expr.Get) expr).object, ((Expr.Get) expr).name, operator, value);
+            else if (expr instanceof Expr.Get) {
+                if (((Expr.Get) expr).name != null) return new Expr.Set(line, ((Expr.Get) expr).object, ((Expr.Get) expr).name, operator, value);
+                else return new Expr.Set(line, ((Expr.Get) expr).object, ((Expr.Get) expr).key, operator, value);
+            }
 
             error(operator, "Invalid assignment target.");
         }
@@ -279,6 +282,10 @@ public class Parser {
             if (match(Token.Type.Dot)) {
                 Token name = consume(Token.Type.Identifier, "Expected property name after '.'.");
                 expr = new Expr.Get(line, expr, name);
+            } else if (match(Token.Type.LeftBracket)) {
+                Expr key = expression();
+                consume(Token.Type.RightBracket, "Expected ']' after value key.");
+                expr = new Expr.Get(line, expr, key);
             } else if (match(Token.Type.LeftParen)) {
                 ArrayList<Expr> args = new ArrayList<>();
                 if (!check(Token.Type.RightParen)) {

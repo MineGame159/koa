@@ -2,7 +2,7 @@ package minegame159.koa;
 
 public class Token {
     public enum Type {
-        LeftParen, RightParen, LeftBrace, RightBrace,
+        LeftParen, RightParen, LeftBrace, RightBrace, LeftBracket, RightBracket,
         Comma, Dot, Semicolon, Colon,
 
         Plus, Minus, Star, Slash, Percentage,

@@ -31,4 +31,4 @@ print()
 
 var someone = Person("Patrick", 99)
 print(someone)
-someone.sayHi()
+someone["sayHi"]()

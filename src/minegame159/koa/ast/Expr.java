@@ -151,11 +151,18 @@ public abstract class Expr {
     public static class Get extends Expr {
         public Expr object;
         public Token name;
+        public Expr key;
 
         public Get(int line, Expr object, Token name) {
             super(line);
             this.object = object;
             this.name = name;
+        }
+
+        public Get(int line, Expr object, Expr key) {
+            super(line);
+            this.object = object;
+            this.key = key;
         }
 
         @Override
@@ -167,6 +174,7 @@ public abstract class Expr {
     public static class Set extends Expr {
         public Expr object;
         public Token name;
+        public Expr key;
         public Token operator;
         public Expr value;
 
@@ -174,6 +182,14 @@ public abstract class Expr {
             super(line);
             this.object = object;
             this.name = name;
+            this.operator = operator;
+            this.value = value;
+        }
+
+        public Set(int line, Expr object, Expr key, Token operator, Expr value) {
+            super(line);
+            this.object = object;
+            this.key = key;
             this.operator = operator;
             this.value = value;
         }
