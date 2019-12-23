@@ -1,0 +1,5 @@
+var math = require("math.koa")
+var math2 = require("math.koa")
+
+print(math.add(5.2, 6.4))
+print(math2.add(-9, 6))

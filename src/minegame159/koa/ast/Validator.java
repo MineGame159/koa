@@ -22,15 +22,18 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
         }
     }
 
+    private String file;
     private Result result = new Result();
     private HashMap<String, Variable> definedVariables = new HashMap<>();
     private boolean insideLoop = false;
     private boolean insideFunction = false;
 
-    private Validator() {}
+    private Validator(String file) {
+        this.file = file;
+    }
 
-    public static Result validate(ArrayList<Stmt> stmts) {
-        Validator validator = new Validator();
+    public static Result validate(String file, ArrayList<Stmt> stmts) {
+        Validator validator = new Validator(file);
         for (int i = 0; i < stmts.size(); i++) validator.validate(stmts.get(i));
         return validator.result;
     }
@@ -39,7 +42,7 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
     public void visitReturnStmt(Stmt.Return stmt) {
         validate(stmt.value);
 
-        if (!insideFunction) error(new Error(stmt.line, "Return statement can only be used inside a function."));
+        if (!insideFunction) error(new Error(file, stmt.line, "Return statement can only be used inside a function."));
     }
 
     // Statements
@@ -67,8 +70,8 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
         validate(stmt.thenBranch);
         validate(stmt.elseBranch);
 
-        if (stmt.thenBranch instanceof Stmt.Block && ((Stmt.Block) stmt.thenBranch).stmts.size() == 0) warning(new Warning(stmt.thenBranch.line, "Then branch in if statement has empty body."));
-        if (stmt.elseBranch instanceof Stmt.Block && ((Stmt.Block) stmt.elseBranch).stmts.size() == 0) warning(new Warning(stmt.elseBranch.line, "Else branch in if statement has empty body."));
+        if (stmt.thenBranch instanceof Stmt.Block && ((Stmt.Block) stmt.thenBranch).stmts.size() == 0) warning(new Warning(file, stmt.thenBranch.line, "Then branch in if statement has empty body."));
+        if (stmt.elseBranch instanceof Stmt.Block && ((Stmt.Block) stmt.elseBranch).stmts.size() == 0) warning(new Warning(file, stmt.elseBranch.line, "Else branch in if statement has empty body."));
     }
 
     @Override
@@ -79,7 +82,7 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
         validate(stmt.body);
         insideLoop = enclosingInsideLoop;
 
-        if (stmt.body instanceof Stmt.Block && ((Stmt.Block) stmt.body).stmts.size() == 0) warning(new Warning(stmt.body.line, "While loop has empty body."));
+        if (stmt.body instanceof Stmt.Block && ((Stmt.Block) stmt.body).stmts.size() == 0) warning(new Warning(file, stmt.body.line, "While loop has empty body."));
     }
 
     @Override
@@ -92,17 +95,17 @@ public class Validator implements Stmt.Visitor, Expr.Visitor {
         validate(stmt.body);
         insideLoop = enclosingInsideLoop;
 
-        if (stmt.body instanceof Stmt.Block && ((Stmt.Block) stmt.body).stmts.size() == 0) warning(new Warning(stmt.body.line, "For loop has empty body."));
+        if (stmt.body instanceof Stmt.Block && ((Stmt.Block) stmt.body).stmts.size() == 0) warning(new Warning(file, stmt.body.line, "For loop has empty body."));
     }
 
     @Override
     public void visitBreakStmt(Stmt.Break stmt) {
-        if (!insideLoop) error(new Error(stmt.line, "Break statement can only be used inside a loop."));
+        if (!insideLoop) error(new Error(file, stmt.line, "Break statement can only be used inside a loop."));
     }
 
     @Override
     public void visitContinueStmt(Stmt.Continue stmt) {
-        if (!insideLoop) error(new Error(stmt.line, "Continue statement can only be used inside a loop."));
+        if (!insideLoop) error(new Error(file, stmt.line, "Continue statement can only be used inside a loop."));
     }
 
     @Override

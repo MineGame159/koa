@@ -26,6 +26,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         c = new ClassBuilder("minegame159/koa/compiled/" + className, OBJECT, new String[] {RUNNABLE});
         c.field("globals", GLOBALS_D);
         c.field("lastTable", VALUE_TABLE_D);
+        c.field("file", STRING_D);
         {   // constructor
             MethodBuilder m = c.method("<init>", "V");
             m.callSuper();
@@ -39,13 +40,14 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         c.end();
     }
 
-    public static Runnable compile(ArrayList<Stmt> stmts, Globals globals) {
+    public static Runnable compile(String file, ArrayList<Stmt> stmts, Globals globals) {
         String className = "Sel" + (int) (Math.random() * 1000000000);
         Compiler compiler = new Compiler(className, stmts);
         Class klass = KoaClassLoader.instance.define(compiler.c.name.replace('/', '.'), compiler.c.build());
         try {
             Runnable obj = (Runnable) klass.newInstance();
             klass.getField("globals").set(obj, globals);
+            klass.getField("file").set(obj, file);
             return obj;
         } catch (InstantiationException | IllegalAccessException | NoSuchFieldException e) {
             e.printStackTrace();
@@ -573,6 +575,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
 
         c.field("globals", GLOBALS_D);
         c.field("lastTable", VALUE_TABLE_D);
+        c.field("file", STRING_D);
         {   // constructor
             MethodBuilder m = c.method("<init>", "V");
             m.callSuper();
@@ -608,6 +611,10 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.varInsn(Opcodes.ALOAD, 0);
         m.fieldInsn(Opcodes.GETFIELD, enclosingC.name, "globals", GLOBALS_D);
         m.fieldInsn(Opcodes.PUTFIELD, c.name, "globals", GLOBALS_D);
+        m.insn(Opcodes.DUP);
+        m.varInsn(Opcodes.ALOAD, 0);
+        m.fieldInsn(Opcodes.GETFIELD, enclosingC.name, "file", STRING_D);
+        m.fieldInsn(Opcodes.PUTFIELD, c.name, "file", STRING_D);
 
         c = enclosingC;
     }
@@ -704,7 +711,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.varInsn(Opcodes.ALOAD, 0); // key, this
         m.fieldInsn(Opcodes.GETFIELD, c.name, "globals", GLOBALS_D); // key, globals
         m.insn(Opcodes.SWAP); // globals, key
-        m.methodInsn(GLOBALS, "get", STRING_D, VALUE_D); // value
+        m.methodInsn(GLOBALS, "getOrNull", STRING_D, VALUE_D); // value
     }
 
     private void emitNull() {
@@ -811,12 +818,19 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.label(lExit);
     }
 
+    private void getFile() {
+        m.varInsn(Opcodes.ALOAD, 0);
+        m.fieldInsn(Opcodes.GETFIELD, c.name, "file", STRING_D);
+    }
+
     private void wrongTypeError(Value.Type... expected) {
         m.fieldInsn(Opcodes.GETFIELD, VALUE, "type", VALUETYPE_D);
         valueTypeToString();
         m.varInsn(Opcodes.ASTORE, 3);
         m.typeInsn(Opcodes.NEW, ERROR);
         m.insn(Opcodes.DUP);
+
+        getFile();
         m.ldcInsn(line);
 
         m.ldcInsn("Wrong Type - Expected: ");
@@ -834,7 +848,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.varInsn(Opcodes.ALOAD, 3);
         stringConcat();
 
-        m.methodInsnSpecial(ERROR, "<init>", "I", STRING_D, "V");
+        m.methodInsnSpecial(ERROR, "<init>", STRING_D, "I", STRING_D, "V");
         m.insn(Opcodes.ATHROW);
     }
     private void wrongNumberOfArgumentsError(int got) {
@@ -842,6 +856,8 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         m.varInsn(Opcodes.ASTORE, 3);
         m.typeInsn(Opcodes.NEW, ERROR);
         m.insn(Opcodes.DUP);
+
+        getFile();
         m.ldcInsn(line);
 
         m.ldcInsn("Wrong number of arguments - Expected: ");
@@ -853,7 +869,7 @@ public class Compiler implements Stmt.Visitor, Expr.Visitor {
         intToString();
         stringConcat();
 
-        m.methodInsnSpecial(ERROR, "<init>", "I", STRING_D, "V");
+        m.methodInsnSpecial(ERROR, "<init>", STRING_D, "I", STRING_D, "V");
         m.insn(Opcodes.ATHROW);
     }
 

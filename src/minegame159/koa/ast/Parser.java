@@ -3,6 +3,7 @@ package minegame159.koa.ast;
 import minegame159.koa.Error;
 import minegame159.koa.Lexer;
 import minegame159.koa.Token;
+import minegame159.koa.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,14 +23,16 @@ public class Parser {
 
     private static class ParseError extends RuntimeException {}
 
+    private String file;
     private Lexer lexer;
     private Token previous;
     private Token current;
     private Token next;
     private Result result = new Result();
 
-    private Parser(String source) {
-        lexer = new Lexer(source);
+    private Parser(String file) {
+        this.file = file;
+        lexer = new Lexer(Utils.readFile(file));
 
         next = lexer.scanToken();
 
@@ -39,8 +42,8 @@ public class Parser {
         parse();
     }
 
-    public static Result parse(String source) {
-        return new Parser(source).result;
+    public static Result parse(String file) {
+        return new Parser(file).result;
     }
 
     private void parse() {
@@ -416,8 +419,8 @@ public class Parser {
     }
 
     private void error(Token token, String message) {
-        if (token.type == Token.Type.Eof) result.errors.add(new Error(token.line, "end", message));
-        else result.errors.add(new Error(token.line, "'" + token.lexeme + "'", message));
+        if (token.type == Token.Type.Eof) result.errors.add(new Error(file, token.line, "end", message));
+        else result.errors.add(new Error(file, token.line, "'" + token.lexeme + "'", message));
         throw new ParseError();
     }
 }

@@ -7,7 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Globals {
-    private final Map<String, Value> globals = new HashMap<>();
+    private Map<String, Value> globals = new HashMap<>();
+    private String file;
+    private boolean printedError;
+    private Map<String, Runnable> modules = new HashMap<>();
 
     public Globals() {
         set("print", new Value.Function() {
@@ -25,6 +28,23 @@ public class Globals {
             }
         });
 
+        set("require", new Value.Function() {
+            @Override
+            public int argCount() {
+                return 1;
+            }
+
+            @Override
+            public Value run(Table table, Value... args) {
+                Globals globals = new Globals();
+                globals.modules = modules;
+                globals.run(file + "/../" + args[0], printedError);
+                printedError = globals.printedError;
+                if (globals.contains("export")) return globals.get("export");
+                else return Value.NULL;
+            }
+        });
+
         set("setMetatable", new Value.Function() {
             @Override
             public int argCount() {
@@ -37,7 +57,6 @@ public class Globals {
                 return Value.NULL;
             }
         });
-
         set("getMetatable", new Value.Function() {
             @Override
             public int argCount() {
@@ -79,20 +98,46 @@ public class Globals {
         return globals.containsKey(key);
     }
 
-    public void run(String code) {
-        Parser.Result parseResult = Parser.parse(code);
-        parseResult.printErrors();
-        if (parseResult.hadError()) return;
+    public void run(String file) {
+        run(file, false);
+    }
+    private void run(String file, boolean printedError) {
+        if (!Utils.fileExists(file)) return;
+        this.file = Utils.resolvePath(file);
+        this.printedError = printedError;
 
-        Validator.Result validateResult = Validator.validate(parseResult.stmts);
-        validateResult.printErrors();
-        validateResult.printWarnings();
-        if (validateResult.hadError()) return;
+        Runnable runnable;
+        if (modules.containsKey(this.file)) {
+            runnable = modules.get(this.file);
+            try {
+                Object gl = runnable.getClass().getField("globals").get(runnable);
+                globals = (Map<String, Value>) gl.getClass().getDeclaredField("globals").get(gl);
+                globals.clear();
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            Parser.Result parseResult = Parser.parse(this.file);
+            parseResult.printErrors();
+            if (parseResult.hadError()) return;
+
+            Validator.Result validateResult = Validator.validate(this.file, parseResult.stmts);
+            validateResult.printErrors();
+            validateResult.printWarnings();
+            if (validateResult.hadError()) return;
+
+            runnable = Compiler.compile(this.file, parseResult.stmts, this);
+            modules.put(this.file, runnable);
+        }
 
         try {
-            Compiler.compile(parseResult.stmts, this).run();
+            runnable.run();
         } catch (Error e) {
-            System.out.println(e);
+            if (!this.printedError) {
+                System.out.println(e);
+                this.printedError = true;
+            }
         }
     }
 }
