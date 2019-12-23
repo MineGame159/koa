@@ -2,6 +2,7 @@ package minegame159.koa;
 
 import minegame159.koa.ast.Parser;
 import minegame159.koa.ast.Validator;
+import minegame159.koa.tables.MathTable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -81,6 +82,8 @@ public class Globals {
                 return new Number(System.currentTimeMillis() / 1000.0);
             }
         });
+
+        set("Math", MathTable.instance);
     }
 
     public void set(String key, Value value) {
