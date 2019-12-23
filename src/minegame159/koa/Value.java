@@ -79,6 +79,10 @@ public abstract class Value {
             return values.containsKey(key);
         }
 
+        public int size() {
+            return values.size();
+        }
+
         public void setMetatable(Table metatable) {
             this.metatable = metatable;
         }

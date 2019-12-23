@@ -22,16 +22,17 @@ public class Utils {
     }
 
     public static String resolvePath(String path) {
+        String path2 = path.replace("\\", "/");
         List<String> pathComponents = new ArrayList<>();
         int start = 0;
-        if (path.startsWith("./")) start = 2;
-        for (int i = start; i < path.length(); i++) {
-            if (path.charAt(i) == '/') {
-                pathComponents.add(path.substring(start, i));
+        if (path2.startsWith("./")) start = 2;
+        for (int i = start; i < path2.length(); i++) {
+            if (path2.charAt(i) == '/') {
+                pathComponents.add(path2.substring(start, i));
                 start = i + 1;
             }
         }
-        pathComponents.add(path.substring(start));
+        pathComponents.add(path2.substring(start));
 
         List<String> finalComponents = new ArrayList<>(pathComponents.size());
         for (int i = 0; i < pathComponents.size(); i++) {

@@ -70,6 +70,17 @@ public class Globals {
                 return metatable != null ? metatable : Value.NULL;
             }
         });
+        set("length", new Value.Function() {
+            @Override
+            public int argCount() {
+                return 1;
+            }
+
+            @Override
+            public Value run(Table table, Value... args) {
+                return new Number(args[0].toTable().size());
+            }
+        });
 
         set("time", new Value.Function() {
             @Override
